@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flask + MySQL Baby Steps</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+theme: {
+extend: {
+fontFamily: {
+'mono': ['"Cascadia Code"', 'monospace'],
+'sans': ['"Cascadia Code"', 'monospace']
+}
+}
+}
+}
+</script>
+<style>
+body {
+font-family: 'Cascadia Code', monospace;
+font-weight: 600;
+}
+code, pre {
+font-family: 'Cascadia Code', monospace !important;
+font-weight: 700;
+}
+.step-card {
+transition: all 0.2s;
+}
+.step-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+.copy-btn {
+opacity: 0;
+transition: opacity 0.2s;
+font-family: 'Cascadia Code', monospace;
+font-weight: 600;
+}
+.code-block:hover .copy-btn {
+opacity: 1;
+}
+
+/* Enhanced Code Block Styling */
+.code-block {
+position: relative;
+margin: 1.5rem 0;
+border-radius: 12px;
+overflow: hidden;
+box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+border: 2px solid #374151;
+}
+
+.code-block::before {
+content: "💻 Code";
+position: absolute;
+top: 0;
+left: 0;
+background: #374151;
+color: #f9fafb;
+padding: 6px 16px;
+font-size: 0.75rem;
+font-weight: 700;
+z-index: 5;
+border-bottom-right-radius: 8px;
+font-family: 'Cascadia Code', monospace;
+}
+
+.code-block pre {
+background: #0f172a !important;
+color: #e2e8f0 !important;
+border: none;
+border-radius: 0;
+padding: 3rem 1.5rem 1.5rem 1.5rem !important;
+font-family: 'Cascadia Code', monospace !important;
+font-weight: 700 !important;
+font-size: 1rem !important;
+line-height: 1.6;
+overflow-x: auto;
+white-space: pre;
+position: relative;
+margin: 0;
+min-height: 60px;
+}
+
+.code-block pre code {
+background: transparent !important;
+color: inherit !important;
+padding: 0 !important;
+border: none !important;
+border-radius: 0 !important;
+font-family: 'Cascadia Code', monospace !important;
+font-weight: 700 !important;
+display: block;
+word-wrap: normal;
+white-space: pre;
+}
+
+.copy-btn {
+position: absolute;
+top: 8px;
+right: 8px;
+background: #10b981;
+color: white;
+border: none;
+border-radius: 6px;
+padding: 8px 16px;
+font-size: 0.8rem;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.2s;
+z-index: 10;
+box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.copy-btn:hover {
+background: #059669;
+transform: scale(1.05);
+box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.copy-btn:active {
+transform: scale(0.95);
+background: #047857;
+}
+
+.copy-btn.copied {
+background: #3b82f6;
+transform: scale(1.1);
+}
+
+/* All text should use Cascadia Code */
+* {
+font-family: 'Cascadia Code', monospace !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+font-family: 'Cascadia Code', monospace !important;
+font-weight: 700 !important;
+}
+
+p, li, span, div {
+font-family: 'Cascadia Code', monospace !important;
+font-weight: 600 !important;
+}
+
+a {
+font-family: 'Cascadia Code', monospace !important;
+font-weight: 600 !important;
+}
+
+/* Inline code styling */
+code:not(pre code) {
+background: #1e293b !important;
+color: #10b981 !important;
+padding: 4px 8px !important;
+border-radius: 6px !important;
+font-family: 'Cascadia Code', monospace !important;
+font-weight: 700 !important;
+font-size: 0.9em !important;
+border: 1px solid #374151 !important;
+box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+}
+
+/* Terminal/Command styling */
+.bg-gray-100 {
+background: #0f172a !important;
+color: #e2e8f0 !important;
+border: 2px solid #374151 !important;
+}
+
+/* Developer-friendly highlights */
+.code-highlight {
+background: linear-gradient(90deg, #10b981, #3b82f6);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+font-weight: 800;
+}
+
+/* Mobile Responsive Styles - Enhanced Device Fitting */
+/* Extra small phones (320px - 374px) */
+@media (max-width: 374px) {
+/* Ultra compact mode */
+body {
+font-size: 13px;
+line-height: 1.4;
+margin: 0;
+padding: 0;
+}
+
+main {
+padding: 0.5rem !important;
+margin-left: 0 !important;
+max-width: 100% !important;
+box-sizing: border-box;
+}
+
+header {
+margin-bottom: 1.5rem !important;
+text-align: center;
+padding: 0.5rem;
+}
+
+header h1 {
+font-size: 1.5rem !important;
+line-height: 1.1 !important;
+margin-bottom: 0.75rem !important;
+word-wrap: break-word;
+}
+
+header p {
+font-size: 0.9rem !important;
+line-height: 1.3 !important;
+}
+
+.step-card {
+padding: 0.75rem !important;
+margin-bottom: 1rem !important;
+border-radius: 6px !important;
+}
+
+.code-block {
+margin: 0.75rem 0 !important;
+border-radius: 6px;
+font-size: 0.7rem;
+}
+
+.code-block::before {
+font-size: 0.6rem;
+padding: 3px 8px;
+}
+
+.code-block pre {
+padding: 2rem 0.5rem 0.75rem 0.5rem !important;
+font-size: 0.65rem !important;
+line-height: 1.3;
+min-height: 40px;
+overflow-x: auto;
+}
+
+.copy-btn {
+top: 3px !important;
+right: 3px !important;
+padding: 3px 6px !important;
+font-size: 0.6rem !important;
+}
+
+h1 { font-size: 1.5rem !important; }
+h2 { font-size: 1.2rem !important; margin-bottom: 0.75rem !important; }
+h3 { font-size: 1rem !important; margin-bottom: 0.5rem !important; }
+p { font-size: 0.85rem !important; margin-bottom: 0.75rem !important; }
+
+ol, ul { padding-left: 0.75rem !important; }
+li { font-size: 0.85rem !important; margin-bottom: 0.4rem !important; }
+
+.bg-amber-50, .bg-red-50, .bg-blue-50, .bg-green-50, .bg-indigo-50 {
+padding: 0.5rem !important;
+margin: 0.75rem 0 !important;
+border-radius: 4px !important;
+}
+
+#sidebar nav a {
+font-size: 0.8rem !important;
+padding: 0.4rem !important;
+}
+
+input, button {
+font-size: 0.8rem !important;
+padding: 0.6rem !important;
+}
+
+img {
+border-radius: 4px !important;
+}
+}
+
+/* Small phones (375px - 480px) */
+@media (min-width: 375px) and (max-width: 480px) {
+body {
+font-size: 14px;
+line-height: 1.5;
+}
+
+main {
+padding: 0.75rem !important;
+margin-left: 0 !important;
+max-width: 100% !important;
+}
+
+header {
+margin-bottom: 2rem !important;
+text-align: center;
+}
+
+header h1 {
+font-size: 1.75rem !important;
+line-height: 1.2 !important;
+margin-bottom: 1rem !important;
+}
+
+header p {
+font-size: 1rem !important;
+}
+
+.step-card {
+padding: 1rem !important;
+margin-bottom: 1rem !important;
+border-radius: 8px !important;
+}
+
+.code-block {
+margin: 1rem 0 !important;
+border-radius: 8px;
+font-size: 0.8rem;
+}
+
+.code-block::before {
+font-size: 0.65rem;
+padding: 4px 10px;
+}
+
+.code-block pre {
+padding: 2.5rem 0.75rem 1rem 0.75rem !important;
+font-size: 0.75rem !important;
+overflow-x: auto;
+white-space: pre;
+word-wrap: normal;
+background: #0f172a !important;
+color: #e2e8f0 !important;
+border-radius: 0;
+min-height: 50px;
+line-height: 1.4;
+}
+
+.copy-btn {
+opacity: 1 !important;
+position: absolute !important;
+top: 4px !important;
+right: 4px !important;
+padding: 4px 8px !important;
+font-size: 0.65rem !important;
+background: #10b981 !important;
+color: white !important;
+border-radius: 3px;
+z-index: 15;
+}
+
+code:not(pre code) {
+padding: 2px 4px !important;
+font-size: 0.75em !important;
+word-break: break-word;
+display: inline-block;
+max-width: 100%;
+}
+
+h1 { font-size: 1.75rem !important; line-height: 1.2 !important; }
+h2 { font-size: 1.4rem !important; line-height: 1.3 !important; margin-bottom: 1rem !important; }
+h3 { font-size: 1.15rem !important; line-height: 1.3 !important; margin-bottom: 0.75rem !important; }
+p { font-size: 0.9rem !important; line-height: 1.5 !important; margin-bottom: 1rem !important; }
+
+ol, ul { padding-left: 1rem !important; }
+li { margin-bottom: 0.5rem !important; font-size: 0.9rem !important; }
+
+.bg-amber-50, .bg-red-50, .bg-blue-50, .bg-green-50, .bg-indigo-50 {
+padding: 0.75rem !important;
+margin: 1rem 0 !important;
+border-radius: 6px !important;
+}
+
+#sidebar nav a {
+font-size: 0.85rem !important;
+padding: 0.5rem !important;
+}
+
+#menuToggle {
+top: 1rem !important;
+left: 1rem !important;
+padding: 0.5rem !important;
+z-index: 60 !important;
+}
+
+input, button {
+font-size: 0.9rem !important;
+padding: 0.75rem !important;
+}
+
+.grid {
+grid-template-columns: 1fr !important;
+gap: 1rem !important;
+}
+}
+
+/* Tablets and small laptops (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+main {
+padding: 1rem !important;
+margin-left: 0 !important;
+max-width: 100% !important;
+}
+
+header h1 {
+font-size: 2rem !important;
+}
+
+.code-block {
+margin: 1rem 0 !important;
+border-radius: 10px;
+}
+
+.code-block::before {
+font-size: 0.75rem;
+padding: 6px 14px;
+}
+
+.code-block pre {
+padding: 2.75rem 1.25rem 1.25rem 1.25rem !important;
+font-size: 0.9rem !important;
+overflow-x: auto;
+white-space: pre;
+word-wrap: normal;
+background: #0f172a !important;
+color: #e2e8f0 !important;
+border-radius: 0;
+min-height: 55px;
+}
+
+.copy-btn {
+opacity: 1 !important;
+position: absolute !important;
+top: 8px !important;
+right: 8px !important;
+padding: 6px 12px !important;
+font-size: 0.75rem !important;
+background: #10b981 !important;
+color: white !important;
+border-radius: 4px;
+z-index: 15;
+}
+
+#sidebar {
+width: 100% !important;
+}
+
+h2 { font-size: 1.6rem !important; }
+h3 { font-size: 1.3rem !important; }
+
+.bg-amber-50, .bg-red-50, .bg-blue-50, .bg-green-50 {
+padding: 1rem !important;
+margin: 1rem 0 !important;
+}
+
+.grid {
+grid-template-columns: 1fr !important;
+gap: 1rem !important;
+}
+}
+
+/* Medium tablets and small desktops (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+main {
+padding: 1.5rem !important;
+max-width: 100% !important;
+}
+
+.code-block pre {
+font-size: 0.95rem !important;
+padding: 3rem 1.5rem 1.5rem 1.5rem !important;
+}
+
+.grid {
+grid-template-columns: 1fr 1fr !important;
+gap: 1.5rem !important;
+}
+}
+
+/* Large screens optimization (1025px+) */
+@media (min-width: 1025px) {
+main {
+max-width: 1200px;
+margin-left: 16rem;
+margin-right: auto;
+padding: 2rem;
+}
+
+.code-block pre {
+font-size: 1rem !important;
+}
+
+.grid {
+grid-template-columns: 1fr 1fr !important;
+gap: 2rem !important;
+}
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+#sidebar {
+height: 100vh !important;
+overflow-y: auto !important;
+}
+
+main {
+padding: 0.75rem !important;
+margin-left: 0 !important;
+}
+
+header {
+margin-bottom: 1rem !important;
+}
+
+header h1 {
+font-size: 1.3rem !important;
+}
+
+h2 {
+font-size: 1.2rem !important;
+}
+
+.code-block pre {
+font-size: 0.8rem !important;
+padding: 2rem 1rem 1rem 1rem !important;
+}
+
+/* Reduce vertical spacing in landscape */
+section {
+margin-bottom: 1.5rem !important;
+}
+
+.step-card {
+padding: 0.75rem !important;
+margin-bottom: 0.75rem !important;
+}
+}
+
+/* Print styles */
+@media print {
+#sidebar, #menuToggle, .copy-btn {
+display: none !important;
+}
+
+main {
+margin-left: 0 !important;
+padding: 0 !important;
+max-width: 100% !important;
+}
+
+.code-block {
+page-break-inside: avoid;
+border: 1px solid #000 !important;
+}
+
+body {
+font-size: 12pt !important;
+line-height: 1.4 !important;
+color: black !important;
+}
+
+.code-block pre {
+background: white !important;
+color: black !important;
+border: none !important;
+}
+}
+
+/* High DPI / Retina display adjustments */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+.code-block {
+border-width: 1px;
+}
+
+.copy-btn {
+box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+}
+
+/* Ensure no horizontal scrolling */
+* {
+box-sizing: border-box;
+max-width: 100%;
+}
+
+html, body {
+overflow-x: hidden;
+width: 100%;
+}
+
+/* Smooth loading animation */
+body.loaded {
+opacity: 1;
+transition: opacity 0.3s ease-in-out;
+}
+
+/* Accessibility improvements for small screens */
+@media (max-width: 480px) {
+/* Larger touch targets */
+button, a, input {
+min-height: 44px;
+min-width: 44px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+}
+
+/* Better focus indicators */
+button:focus, a:focus, input:focus {
+outline: 2px solid #3b82f6;
+outline-offset: 2px;
+}
+}
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+<!-- Mobile menu button -->
+<button id="menuToggle" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+</svg>
+</button>
+
+<!-- Sidebar Navigation -->
+<div id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r transform -translate-x-full md:translate-x-0 z-40 h-full overflow-y-auto transition-transform duration-300 ease-in-out">
+<div class="p-6 border-b">
+<h1 class="text-xl font-bold text-indigo-600">Flask + MySQL Baby Steps</h1>
+<p class="text-gray-500 text-sm mt-1">Your hand-holding guide</p>
+</div>
+
+<nav class="p-4">
+<ul class="space-y-2">
+<li><a href="#intro" class="block p-2 rounded hover:bg-indigo-50 text-indigo-600 font-medium">✨ Introduction</a></li>
+<li><a href="#install-python" class="block p-2 rounded hover:bg-indigo-50">🐍 Install Python & Flask</a></li>
+<li><a href="#virtual-env" class="block p-2 rounded hover:bg-indigo-50">📦 Virtual Environment</a></li>
+<li><a href="#mysql-setup" class="block p-2 rounded hover:bg-indigo-50">🐬 MySQL Setup</a></li>
+<li><a href="#connect-db" class="block p-2 rounded hover:bg-indigo-50">🔌 Connect Flask to MySQL</a></li>
+<li><a href="#create-tables" class="block p-2 rounded hover:bg-indigo-50">🗃️ Create Database Tables</a></li>
+<li><a href="#routes" class="block p-2 rounded hover:bg-indigo-50">🚀 App Routes</a></li>
+<li><a href="#run-server" class="block p-2 rounded hover:bg-indigo-50">⏵ Run the Server</a></li>
+<li><a href="#deployment" class="block p-2 rounded hover:bg-indigo-50">☁️ Deployment</a></li>
+</ul>
+</nav> </div>
+
+<!-- Main Content -->
+<main class="md:ml-64 p-4 md:p-8 max-w-4xl">
+<header class="mb-12">
+<h1 class="text-3xl md:text-4xl font-bold mb-4">Build a To-Do App with Flask & MySQL</h1>
+<p class="text-xl text-gray-600">Super baby-level guide for absolute beginners - no experience needed!</p>
+<div class="mt-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r">
+<p class="font-medium text-amber-800">This guide walks you through EVERY step like you've never touched code before. We'll hold your hand through every click and command!</p>
+</div>
+</header>
+
+<!-- Introduction -->
+<section id="intro" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">✨</span> Why This Guide is Different
+</h2>
+<div class="bg-white p-6 rounded-xl step-card border">
+<p class="mb-4">Most tutorials assume you know things. This one <strong>doesn't</strong>. We'll explain:</p>
+<ul class="list-disc pl-6 space-y-2 mb-4">
+<li>What Python is (and where to find it)</li>
+<li>What "terminal" means (with screenshots)</li>
+<li>Every single character in every code file</li>
+<li>What to do when you get stuck (with common error fixes)</li>
+</ul>
+<div class="bg-blue-50 p-4 rounded border border-blue-100">
+<p class="font-medium text-blue-800">You'll build a real To-Do app that you can run on your computer by the end of this guide. No prior knowledge needed!</p>
+</div>
+</div>
+</section>
+
+<!-- Install Python & Flask -->
+<section id="install-python" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">🐍</span> 1. Installing Python & Flask
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border mb-6">
+<h3 class="text-xl font-bold mb-3">Step 1: Get Python</h3>
+<p class="mb-4">Flask needs Python. Let's install it:</p>
+
+<ol class="list-decimal pl-6 space-y-3">
+<li>
+<p>Go to <a href="https://python.org" class="text-indigo-600 hover:underline">python.org</a> in your browser</p>
+<img src="https://placehold.co/800x200?text=Go+to+python.org+in+your+browser" class="mt-2 rounded border w-full" alt="Python.org website">
+</li>
+<li>
+<p>Click the big yellow button that says "Download Python 3.x.x"</p>
+<img src="https://placehold.co/800x150?text=Click+the+yellow+Download+button" class="mt-2 rounded border w-full" alt="Download button">
+</li>
+<li>
+<p>When the file downloads, DOUBLE-CLICK it to open (don't right-click!)</p>
+</li>
+<li>
+<p class="font-medium">CRITICAL: On the installer screen, CHECK THIS BOX:</p>
+<img src="https://placehold.co/800x150?text=☑+Add+Python+to+PATH" class="mt-2 rounded border w-full" alt="Add to PATH checkbox">
+<p class="mt-2 text-sm text-gray-600">If you miss this, nothing will work later. It's at the bottom!</p>
+</li>
+<li>
+<p>Click "Install Now" → Enter admin password if asked → Wait for "Setup was successful"</p>
+</li>
+</ol>
+</div>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<h3 class="text-xl font-bold mb-3">Step 2: Install Flask</h3>
+<p class="mb-4">Now we install Flask using the command line:</p>
+
+<ol class="list-decimal pl-6 space-y-3">
+<li>
+<p>Open your computer's "Terminal" (Mac) or "Command Prompt" (Windows)</p>
+<p class="text-sm text-gray-600 mt-1">How to find it:</p>
+<ul class="list-disc pl-5 mt-1 space-y-1">
+<li><strong>Windows:</strong> Type "cmd" in Start Menu search</li>
+<li><strong>Mac:</strong> Open Spotlight (Cmd+Space) and type "Terminal"</li>
+</ul>
+</li>
+<li>
+<p>Type this EXACTLY and press Enter:</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>pip install flask</code></pre>
+</div>
+<p class="mt-2 text-sm text-gray-600">You should see "Successfully installed flask..."</p>
+</li>
+<li>
+<p>Verify it worked by typing:</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>flask --version</code></pre>
+</div>
+<p class="mt-2">You should see something like: <span class="bg-gray-200 px-1 rounded">Flask 2.0.1</span></p>
+</li>
+</ol>
+
+<div class="mt-4 bg-red-50 p-4 rounded border border-red-100">
+<p class="font-medium text-red-800">If you see "pip is not recognized":</p>
+<ol class="list-decimal pl-6 mt-2 space-y-1">
+<li>You missed the "Add to PATH" step during Python install</li>
+<li>Uninstall Python → Reinstall → CHECK "Add to PATH"!</li>
+</ol>
+</div>
+</div>
+</section>
+
+<!-- Virtual Environment -->
+<section id="virtual-env" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">📦</span> 2. Setting Up Virtual Environment
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<p class="mb-4">This creates a "clean room" for your project (prevents package conflicts):</p>
+
+<ol class="list-decimal pl-6 space-y-3">
+<li>
+<p>Create a folder for your project:</p>
+<ul class="list-disc pl-5 mt-2 space-y-1">
+<li><strong>Windows:</strong> Right-click desktop → New → Folder → Name it <span class="bg-gray-200 px-1 rounded">todo-app</span></li>
+<li><strong>Mac:</strong> Open Finder → Desktop → File → New Folder → Name it <span class="bg-gray-200 px-1 rounded">todo-app</span></li>
+</ul>
+</li>
+<li>
+<p>Open Terminal/Command Prompt and go to your folder:</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>cd Desktop/todo-app</code></pre>
+</div>
+<p class="mt-2 text-sm text-gray-600">If your folder is somewhere else, replace "Desktop/todo-app" with your path</p>
+</li>
+<li>
+<p>Create the virtual environment:</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>python -m venv venv</code></pre>
+</div>
+<p class="mt-2">Nothing will happen if it works (that's good!)</p>
+</li>
+<li>
+<p>Activate it (this makes your terminal use the virtual environment):</p>
+<div class="bg-gray-50 p-4 rounded mt-2">
+<p class="font-medium mb-2">For Windows:</p>
+<div class="relative code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>venv\Scripts\activate</code></pre>
+</div>
+
+<p class="font-medium mt-4 mb-2">For Mac/Linux:</p>
+<div class="relative code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>source venv/bin/activate</code></pre>
+</div>
+</div>
+<p class="mt-2">You should see <span class="bg-gray-200 px-1 rounded">(venv)</span> at the start of your terminal line</p>
+</li>
+</ol>
+</div>
+</section>
+
+<!-- MySQL Setup -->
+<section id="mysql-setup" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">🐬</span> 3. Setting Up MySQL
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<h3 class="text-xl font-bold mb-3">Step 1: Install MySQL</h3>
+
+<ol class="list-decimal pl-6 space-y-3">
+<li>
+<p>Download MySQL Installer:</p>
+<ul class="list-disc pl-5 mt-2 space-y-1">
+<li>Go to <a href="https://dev.mysql.com/downloads/installer/" class="text-indigo-600 hover:underline">mysql.com/downloads/installer</a></li>
+<li>Click "MySQL Installer for Windows" (or macOS if you're on Mac)</li>
+</ul>
+</li>
+<li>
+<p>Run the installer (double-click the downloaded file)</p>
+</li>
+<li>
+<p>Select "Developer Default" → Click "Next"</p>
+<img src="https://placehold.co/800x150?text=Select+Developer+Default" class="mt-2 rounded border w-full" alt="Developer Default selection">
+</li>
+<li>
+<p>When asked to "Check Requirements", click "Execute" for each item</p>
+</li>
+<li>
+<p>On the "Accounts and Roles" screen:</p>
+<ul class="list-disc pl-5 mt-2 space-y-1">
+<li>Set root password to: <span class="bg-gray-200 px-1 rounded">password123</span> (yes, really!)</li>
+<li>Confirm it twice</li>
+</ul>
+<img src="https://placehold.co/800x150?text=Set+root+password+to+password123" class="mt-2 rounded border w-full" alt="Password setup">
+</li>
+<li>
+<p>Click "Next" through everything else → "Execute" → "Finish"</p>
+</li>
+</ol>
+</div>
+
+<div class="bg-white p-6 rounded-xl step-card border mt-6">
+<h3 class="text-xl font-bold mb-3">Step 2: Verify MySQL Works</h3>
+
+<ol class="list-decimal pl-6 space-y-3">
+<li>
+<p>Open a NEW Terminal/Command Prompt (important!)</p>
+</li>
+<li>
+<p>Type this to log into MySQL:</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>mysql -u root -p</code></pre>
+</div>
+<p class="mt-2">When asked for password, type: <span class="bg-gray-200 px-1 rounded">password123</span> (you won't see typing)</p>
+</li>
+<li>
+<p>If you see this, you're IN:</p>
+<pre class="bg-gray-100 p-4 rounded mt-2">mysql></pre>
+</li>
+<li>
+<p>Type <span class="bg-gray-200 px-1 rounded">exit</span> and press Enter to leave MySQL</p>
+</li>
+</ol>
+
+<div class="mt-4 bg-red-50 p-4 rounded border border-red-100">
+<p class="font-medium text-red-800">If you get "mysql command not found":</p>
+<ol class="list-decimal pl-6 mt-2 space-y-1">
+<li>Reopen the MySQL Installer</li>
+<li>Go to "Products" → Check "MySQL Server" → Click "Reconfigure"</li>
+<li>On "Advanced Options", CHECK "Add MySQL to PATH"</li>
+</ol>
+</div>
+</div>
+</section>
+
+<!-- Connect Flask to MySQL -->
+<section id="connect-db" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">🔌</span> 4. Connecting Flask to MySQL
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<h3 class="text-xl font-bold mb-3">Step 1: Install Database Connector</h3>
+<p class="mb-4">In your TERMINAL (with (venv) active):</p>
+
+<div class="relative code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>pip install flask-mysql</code></pre>
+</div>
+
+<h3 class="text-xl font-bold mt-6 mb-3">Step 2: Create config.py File</h3>
+<p class="mb-4">In your <span class="bg-gray-200 px-1 rounded">todo-app</span> folder, create a new file named <span class="bg-gray-200 px-1 rounded">config.py</span></p>
+
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code># config.py
+MYSQL_HOST = 'localhost'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'password123'
+MYSQL_DB = 'todo_db'</code></pre>
+</div>
+
+<div class="mt-4 bg-amber-50 p-4 rounded border border-amber-100">
+<p class="font-medium text-amber-800">Important: This file contains your database password! Never share it.</p>
+</div>
+</div>
+</section>
+
+<!-- Create Tables -->
+<section id="create-tables" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">🗃️</span> 5. Creating Database Tables
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<h3 class="text-xl font-bold mb-3">Step 1: Create Database in MySQL</h3>
+<p class="mb-4">Open Terminal and log into MySQL:</p>
+
+<div class="relative code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>mysql -u root -p</code></pre>
+</div>
+
+<h3 class="text-xl font-bold mt-6 mb-3">Step 2: Run These Commands in MySQL</h3>
+<p class="mb-2">Type each command below, then press Enter after each one:</p>
+
+<div class="relative code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>CREATE DATABASE todo_db;
+USE todo_db;
+CREATE TABLE tasks (
+id INT AUTO_INCREMENT PRIMARY KEY,
+content VARCHAR(255) NOT NULL,
+completed BOOLEAN DEFAULT 0
+);</code></pre>
+</div>
+
+<p class="mt-4">If you see "Query OK", it worked! Type <span class="bg-gray-200 px-1 rounded">exit</span> to leave MySQL.</p>
+</div>
+</section>
+
+<!-- App Routes -->
+<section id="routes" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">🚀</span> 6. Writing the App Code
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<h3 class="text-xl font-bold mb-3">Step 1: Create app.py File</h3>
+<p class="mb-4">In your <span class="bg-gray-200 px-1 rounded">todo-app</span> folder, create <span class="bg-gray-200 px-1 rounded">app.py</span> with this code:</p>
+
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code># app.py
+from flask import Flask, render_template, request, redirect
+from config import MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB
+from flask_mysqldb import MySQL
+
+app = Flask(name)
+
+Configure MySQL
+app.config['MYSQL_HOST'] = MYSQL_HOST
+app.config['MYSQL_USER'] = MYSQL_USER
+app.config['MYSQL_PASSWORD'] = MYSQL_PASSWORD
+app.config['MYSQL_DB'] = MYSQL_DB
+mysql = MySQL(app)
+
+Home page - show all tasks
+@app.route('/')
+def index():
+cur = mysql.connection.cursor()
+cur.execute("SELECT * FROM tasks")
+tasks = cur.fetchall()
+cur.close()
+return render_template('index.html', tasks=tasks)
+
+Add new task
+@app.route('/add', methods=['POST'])
+def add_task():
+task = request.form['content']
+cur = mysql.connection.cursor()
+cur.execute("INSERT INTO tasks (content) VALUES (%s)", (task,))
+mysql.connection.commit()
+cur.close()
+return redirect('/')
+
+Delete task
+@app.route('/delete/int:id ')
+def delete_task(id):
+cur = mysql.connection.cursor()
+cur.execute("DELETE FROM tasks WHERE id = %s", (id,))
+mysql.connection.commit()
+cur.close()
+return redirect('/')
+
+if name == 'main':
+app.run(debug=True)</code></pre>
+</div>
+</div>
+
+<div class="bg-white p-6 rounded-xl step-card border mt-6">
+<h3 class="text-xl font-bold mb-3">Step 2: Create HTML Template</h3>
+<p class="mb-4">Create folder <span class="bg-gray-200 px-1 rounded">templates</span> inside <span class="bg-gray-200 px-1 rounded">todo-app</span></p>
+<p class="mb-4">Inside it, create <span class="bg-gray-200 px-1 rounded">index.html</span> with this code:</p>
+
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;My To-Do App&lt;/title&gt;
+&lt;style&gt;
+body { font-family: system-ui; max-width: 600px; margin: 2rem auto; }
+input, button { padding: 8px; margin: 5px 0; }
+.task { padding: 10px; border: 1px solid #ddd; margin: 5px 0; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;My To-Do List&lt;/h1&gt;
+
+&lt;!-- Add new task form --&gt;
+&lt;form method="POST" action="/add"&gt;
+&lt;input type="text" name="content" placeholder="Add a new task..." required&gt;
+&lt;button type="submit"&gt;Add Task&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;!-- Show all tasks --&gt;
+&lt;div&gt;
+{% for task in tasks %}
+&lt;div class="task"&gt;
+{{ task[1] }}
+&lt;a href="/delete/{{ task[0] }}"&gt;❌&lt;/a&gt;
+&lt;/div&gt;
+{% endfor %}
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+</section>
+
+<!-- Run Server -->
+<section id="run-server" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">⏵</span> 7. Running Your App
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<h3 class="text-xl font-bold mb-3">Step-by-Step Execution</h3>
+
+<ol class="list-decimal pl-6 space-y-3">
+<li>
+<p>Make sure your terminal is in the <span class="bg-gray-200 px-1 rounded">todo-app</span> folder</p>
+<p class="text-sm text-gray-600 mt-1">You should see <span class="bg-gray-200 px-1 rounded">(venv)</span> at the start of the line</p>
+</li>
+<li>
+<p>Type this to run your app:</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>python app.py</code></pre>
+</div>
+</li>
+<li>
+<p>You should see this in your terminal:</p>
+<pre class="bg-gray-100 p-4 rounded mt-2">* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)</pre>
+</li>
+<li>
+<p>Open your browser and go to: <a href="http://localhost:5000" class="text-indigo-600 hover:underline">http://localhost:5000</a></p>
+</li>
+</ol>
+
+<div class="mt-6 bg-green-50 p-4 rounded border border-green-100">
+<p class="font-medium text-green-800">CONGRATULATIONS! You've built a working To-Do app with Flask and MySQL!</p>
+<p class="mt-2">Try adding a task. It should appear on the page immediately.</p>
+</div>
+</div>
+</section>
+
+<!-- Deployment -->
+<section id="deployment" class="mb-16">
+<h2 class="text-2xl font-bold mb-4 flex items-center">
+<span class="mr-2">☁️</span> 8. Deployment (Baby-Level)
+</h2>
+
+<div class="bg-white p-6 rounded-xl step-card border">
+<h3 class="text-xl font-bold mb-3">Running Locally Forever</h3>
+<p class="mb-4">To keep your app running when you close the terminal:</p>
+
+<ol class="list-decimal pl-6 space-y-3">
+<li>
+<p>Open Terminal → Go to your project folder</p>
+</li>
+<li>
+<p>Activate virtual environment:</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>venv\Scripts\activate # Windows
+source venv/bin/activate # Mac</code></pre>
+</div>
+</li>
+<li>
+<p>Run in background (Windows):</p>
+<div class="relative mt-2 code-block">
+<button class="copy-btn text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded absolute top-2 right-2" onclick="copyCode(this)">Copy</button>
+<pre class="bg-gray-100 p-4 rounded whitespace-pre"><code>start /B python app.py</code></pre>
+</div>
+</li>
+<li>
+<p>Your app will keep running even if you close the terminal!</p>
+</li>
+</ol>
+
+<div class="mt-6 bg-blue-50 p-4 rounded border border-blue-100">
+<p class="font-medium text-blue-800">For real hosting (next steps after this guide):</p>
+<ul class="list-disc pl-6 mt-2 space-y-1">
+<li>Try <a href="https://render.com" class="text-indigo-600 hover:underline">Render.com</a> (free tier)</li>
+<li>They have a "Deploy Flask App" button that guides you</li>
+<li>You'll need to create a "requirements.txt" file (we can teach this later!)</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- Final Note -->
+<section class="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+<h2 class="text-2xl font-bold mb-3 text-indigo-800">🎉 You Did It!</h2>
+<p class="mb-4">You've just built a full-stack To-Do app with:</p>
+<ul class="list-disc pl-6 space-y-2 mb-4">
+<li>Flask (Python backend)</li>
+<li>MySQL (database)</li>
+<li>HTML templates (frontend)</li>
+</ul>
+<p>Remember: Every expert was once a beginner. You took the first step today!</p>
+</section>
+
+<!-- Developer Resources Section -->
+<section class="bg-gray-900 text-white p-6 rounded-xl border mb-8">
+<h2 class="text-2xl font-bold mb-4 text-green-400">💻 Developer Quick Reference</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-gray-800 p-4 rounded-lg">
+<h3 class="font-bold text-yellow-400 mb-2">📁 Project Structure</h3>
+<div class="relative code-block">
+<button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+<pre class="text-sm"><code>todo-app/
+├── venv/
+├── app.py
+├── config.py
+└── templates/
+    └── index.html</code></pre>
+</div>
+</div>
+<div class="bg-gray-800 p-4 rounded-lg">
+<h3 class="font-bold text-yellow-400 mb-2">🚀 Quick Start Commands</h3>
+<div class="relative code-block">
+<button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+<pre class="text-sm"><code># Activate environment
+venv\Scripts\activate
+
+# Install dependencies
+pip install flask flask-mysql
+
+# Run the app
+python app.py</code></pre>
+</div>
+</div>
+</div>
+<div class="mt-6 bg-gray-800 p-4 rounded-lg">
+<h3 class="font-bold text-yellow-400 mb-2">🔧 Troubleshooting Commands</h3>
+<div class="relative code-block">
+<button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+<pre class="text-sm"><code># Check Python version
+python --version
+
+# Check Flask installation
+pip show flask
+
+# Test MySQL connection
+mysql -u root -p
+
+# Show all databases
+SHOW DATABASES;
+
+# Use your database
+USE todo_db;
+
+# Show tables
+SHOW TABLES;</code></pre>
+</div>
+</div>
+</section> </main>
+
+<script>
+// Dynamic viewport and responsive adjustments
+function adjustViewport() {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    const screenWidth = window.innerWidth;
+    
+    // Enhanced viewport settings based on device size
+    if (screenWidth <= 480) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+    } else if (screenWidth <= 768) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=2.0');
+    } else {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+    }
+}
+
+// Mobile menu toggle with size-aware behavior
+document.getElementById('menuToggle').addEventListener('click', function() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('-translate-x-full');
+    
+    // Adjust body overflow for very small screens
+    if (window.innerWidth <= 480) {
+        document.body.style.overflow = sidebar.classList.contains('-translate-x-full') ? 'auto' : 'hidden';
+    }
+});
+
+// Close sidebar when clicking outside (size-aware)
+document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    
+    if (window.innerWidth < 768) {
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+            sidebar.classList.add('-translate-x-full');
+            if (window.innerWidth <= 480) {
+                document.body.style.overflow = 'auto';
+            }
+        }
+    }
+});
+
+// Enhanced responsive behavior on resize
+window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('sidebar');
+    const main = document.querySelector('main');
+    
+    // Adjust layout based on new screen size
+    if (window.innerWidth >= 768) {
+        sidebar.classList.remove('-translate-x-full');
+        document.body.style.overflow = 'auto';
+    } else {
+        sidebar.classList.add('-translate-x-full');
+    }
+    
+    // Adjust viewport
+    adjustViewport();
+    
+    // Recalculate font sizes for better fit
+    adjustContentSizing();
+});
+
+// Dynamic content sizing based on device
+function adjustContentSizing() {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+    const main = document.querySelector('main');
+    
+    // Very small screens (phones in portrait)
+    if (screenWidth <= 375) {
+        document.documentElement.style.fontSize = '14px';
+        main.style.padding = '0.5rem';
+    }
+    // Small phones and larger
+    else if (screenWidth <= 480) {
+        document.documentElement.style.fontSize = '15px';
+        main.style.padding = '0.75rem';
+    }
+    // Tablets and small laptops
+    else if (screenWidth <= 768) {
+        document.documentElement.style.fontSize = '16px';
+        main.style.padding = '1rem';
+    }
+    // Large screens
+    else {
+        document.documentElement.style.fontSize = '16px';
+        main.style.padding = '2rem';
+    }
+    
+    // Adjust code blocks for very small screens
+    const codeBlocks = document.querySelectorAll('.code-block pre');
+    codeBlocks.forEach(block => {
+        if (screenWidth <= 375) {
+            block.style.fontSize = '0.7rem';
+            block.style.padding = '2rem 0.5rem 0.5rem 0.5rem';
+        } else if (screenWidth <= 480) {
+            block.style.fontSize = '0.75rem';
+            block.style.padding = '2.5rem 0.75rem 1rem 0.75rem';
+        }
+    });
+}
+
+// Enhanced copy code functionality with device-aware feedback
+function copyCode(button) {
+    const codeBlock = button.parentElement;
+    const code = codeBlock.querySelector('pre code').textContent;
+
+    // Add haptic feedback on mobile devices
+    if ('vibrate' in navigator && window.innerWidth <= 768) {
+        navigator.vibrate(50);
+    }
+
+    navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        
+        button.textContent = '✅ Copied!';
+        button.classList.add('copied');
+        button.style.background = '#3b82f6';
+
+        // Shorter timeout on mobile for better UX
+        const timeout = window.innerWidth <= 768 ? 2000 : 3000;
+        
+        setTimeout(() => {
+            button.textContent = originalText || 'Copy';
+            button.classList.remove('copied');
+            button.style.background = '';
+        }, timeout);
+    }).catch(err => {
+        // Enhanced fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+            button.textContent = '✅ Copied!';
+            
+            if ('vibrate' in navigator && window.innerWidth <= 768) {
+                navigator.vibrate(50);
+            }
+        } catch (err) {
+            button.textContent = '❌ Error';
+        }
+
+        document.body.removeChild(textArea);
+
+        setTimeout(() => {
+            button.textContent = 'Copy';
+        }, 2000);
+    });
+}
+
+// Enhanced smooth scrolling with device-aware offsets
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+
+        if (target) {
+            // Calculate offset based on device size
+            let offset = 0;
+            if (window.innerWidth <= 480) {
+                offset = 80; // More space for small screens
+            } else if (window.innerWidth <= 768) {
+                offset = 60;
+            } else {
+                offset = 20;
+            }
+            
+            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+            window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+            });
+
+            // Close mobile menu if open
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                if (window.innerWidth <= 480) {
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        }
+    });
+});
+
+// Touch and swipe gestures for better mobile navigation
+let touchStartX = 0;
+let touchEndX = 0;
+let touchStartY = 0;
+let touchEndY = 0;
+
+document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleSwipe();
+}, { passive: true });
+
+function handleSwipe() {
+    const swipeThreshold = 80;
+    const sidebar = document.getElementById('sidebar');
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = Math.abs(touchEndY - touchStartY);
+
+    // Only handle horizontal swipes (ignore vertical scrolling)
+    if (deltaY < 100 && window.innerWidth < 768) {
+        // Swipe right to open menu (from left edge)
+        if (deltaX > swipeThreshold && touchStartX < 50) {
+            sidebar.classList.remove('-translate-x-full');
+            if (window.innerWidth <= 480) {
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        // Swipe left to close menu (when menu is open)
+        else if (deltaX < -swipeThreshold && !sidebar.classList.contains('-translate-x-full')) {
+            sidebar.classList.add('-translate-x-full');
+            if (window.innerWidth <= 480) {
+                document.body.style.overflow = 'auto';
+            }
+        }
+    }
+}
+
+// Keyboard navigation with device awareness
+document.addEventListener('keydown', function(e) {
+    const sidebar = document.getElementById('sidebar');
+
+    // Enhanced keyboard shortcuts
+    if (e.key === 'Escape') {
+        if (window.innerWidth < 768) {
+            sidebar.classList.add('-translate-x-full');
+            if (window.innerWidth <= 480) {
+                document.body.style.overflow = 'auto';
+            }
+        }
+    }
+    
+    // Toggle menu with 'M' key (only on mobile)
+    if ((e.key === 'M' || e.key === 'm') && window.innerWidth < 768) {
+        sidebar.classList.toggle('-translate-x-full');
+        if (window.innerWidth <= 480) {
+            document.body.style.overflow = sidebar.classList.contains('-translate-x-full') ? 'auto' : 'hidden';
+        }
+    }
+});
+
+// Initialize responsive features on load
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial viewport and sizing
+    adjustViewport();
+    adjustContentSizing();
+    
+    // Set initial mobile menu state
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth < 768) {
+        sidebar.classList.add('-translate-x-full');
+    }
+    
+    // Add loading class for smooth transitions
+    document.body.classList.add('loaded');
+    
+    // Setup intersection observer for performance on mobile
+    if ('IntersectionObserver' in window && window.innerWidth <= 768) {
+        const sections = document.querySelectorAll('section');
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        sections.forEach(section => sectionObserver.observe(section));
+    }
+});
+
+// Optimize scroll performance for mobile
+let ticking = false;
+function updateOnScroll() {
+    // Minimal scroll handling for better performance
+    ticking = false;
+}
+
+window.addEventListener('scroll', function() {
+    if (!ticking && window.innerWidth <= 768) {
+        requestAnimationFrame(updateOnScroll);
+        ticking = true;
+    }
+}, { passive: true });
+
+// Handle orientation changes
+window.addEventListener('orientationchange', function() {
+    setTimeout(() => {
+        adjustViewport();
+        adjustContentSizing();
+        
+        // Reset sidebar state on orientation change
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth < 768) {
+            sidebar.classList.add('-translate-x-full');
+            document.body.style.overflow = 'auto';
+        }
+    }, 100);
+});
+</script>
+</body>
+</html>
